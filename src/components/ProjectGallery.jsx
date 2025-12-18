@@ -50,8 +50,14 @@ const PROJECTS = {
     {
       id: 'pave-8',
       title: 'Custom Stone Steps',
-      before: ['/photos/paving 8 b4 steps.jpg'],
-      after: ['/photos/paving8 after steps.jpg']
+      before: ['/photos/paving 8 b4 steps.jpg', '/photos/paving 8 before angle 2.jpg'],
+      after: ['/photos/paving8 after steps.jpg', '/photos/paving 8 after close up steps.jpg']
+    },
+    {
+      id: 'pave-9',
+      title: 'Modern Paving Installation',
+      before: ['/photos/paving 9 before.jpg'],
+      after: ['/photos/paving 9 after.jpg']
     }
   ],
   fencing: [
@@ -59,7 +65,13 @@ const PROJECTS = {
       id: 'fence-1',
       title: 'Privacy Fence Installation',
       before: ['/photos/fence b4.jpg'],
-      after: ['/photos/fence after.jpg']
+      after: ['/photos/fence after.jpg', '/photos/fence after angle 2.jpg']
+    },
+    {
+      id: 'fence-2',
+      title: 'Professional Fencing Project',
+      before: ['/photos/fencing 1 before.jpg'],
+      after: ['/photos/fencing 1 after.jpg']
     }
   ],
   turf: [
@@ -93,7 +105,7 @@ const PROJECTS = {
       id: 'steps-1',
       title: 'Stone Step Creation',
       before: ['/photos/step creation b4.jpg'],
-      after: ['/photos/steps after.jpg']
+      after: ['/photos/steps after.jpg', '/photos/steps after 2.jpeg']
     }
   ],
   retaining: [
@@ -106,7 +118,7 @@ const PROJECTS = {
     {
       id: 'retaining-2',
       title: 'Multi-Level Retaining System',
-      before: ['/photos/retaining wall 2 angle 2.jpg'],
+      before: ['/photos/retaing wall 2 before.jpeg', '/photos/retaining wall 2 angle 2.jpg'],
       after: ['/photos/retaining wall 2 completed.jpg', '/photos/retaining wall 2 angle 3.jpg']
     },
     {
@@ -114,6 +126,12 @@ const PROJECTS = {
       title: 'Custom Retaining Wall Installation',
       before: ['/photos/new retaining wall before.PNG'],
       after: ['/photos/new retaining wall after.PNG', '/photos/new retaining wall angle 2 after.PNG']
+    },
+    {
+      id: 'retaining-4',
+      title: 'Retaining Wall with Steps',
+      before: ['/photos/retaining wall 2 steps before.jpg'],
+      after: ['/photos/retaining wall 2 steps after.jpg']
     }
   ]
 }

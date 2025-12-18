@@ -182,7 +182,7 @@ const AboutUs = () => {
                 height="400"
               />
               <h4 className="text-xl font-heading font-bold text-slate-grey mb-2">
-                Antonio
+                Antonio Marshall
               </h4>
               <p className="text-forest-green font-semibold mb-3">Owner & Heavy Equipment Operator</p>
               <p className="text-gray-600 text-sm">

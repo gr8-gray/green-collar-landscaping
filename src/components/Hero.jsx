@@ -62,39 +62,45 @@ const Hero = () => {
 
           {/* Right Content - Featured Project Photos */}
           <div className="hidden lg:block">
-            <div className="relative">
-              {/* Main featured image */}
-              <div className="aspect-square rounded-lg overflow-hidden shadow-2xl border-4 border-white/20">
-                <img
-                  src="/photos/paving 5 after 1.jpg"
-                  alt="Professional paving installation"
-                  className="w-full h-full object-cover"
+            {/* Option 3: Full-Width Video with Photos Below */}
+            <div className="space-y-4">
+              {/* Full-width video */}
+              <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-2xl border-4 border-white/20">
+                <video
+                  src="/photos/Sora Video.mp4"
+                  className="w-full h-full object-contain bg-slate-900"
                   width="600"
                   height="600"
-                  fetchpriority="high"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  controls
                 />
               </div>
 
-              {/* Small overlay images */}
-              <div className="absolute -bottom-4 -left-4 w-32 h-32 rounded-lg overflow-hidden shadow-xl border-4 border-white">
-                <img
-                  src="/photos/turf after 1.jpg"
-                  alt="Synthetic turf"
-                  className="w-full h-full object-cover"
-                  width="200"
-                  height="200"
-                  loading="lazy"
-                />
-              </div>
-              <div className="absolute -top-4 -right-4 w-24 h-24 rounded-lg overflow-hidden shadow-xl border-4 border-white">
-                <img
-                  src="/photos/fence after.jpg"
-                  alt="Fencing"
-                  className="w-full h-full object-cover"
-                  width="150"
-                  height="150"
-                  loading="lazy"
-                />
+              {/* Bottom gallery bar - below video */}
+              <div className="flex gap-4">
+                <div className="flex-1 h-32 rounded-lg overflow-hidden shadow-xl border-4 border-white">
+                  <img
+                    src="/photos/retaining wall 2 completed.jpg"
+                    alt="Retaining wall"
+                    className="w-full h-full object-cover"
+                    width="200"
+                    height="200"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="flex-1 h-32 rounded-lg overflow-hidden shadow-xl border-4 border-white">
+                  <img
+                    src="/photos/paving 2.jpg"
+                    alt="Paving"
+                    className="w-full h-full object-cover"
+                    width="150"
+                    height="150"
+                    loading="lazy"
+                  />
+                </div>
               </div>
             </div>
           </div>

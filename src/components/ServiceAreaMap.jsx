@@ -1,7 +1,14 @@
-import React from 'react'
-import { MapPin, CheckCircle } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { MapPin, CheckCircle, X, Maximize2 } from 'lucide-react'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const ServiceAreaMap = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const mapRef = useRef(null)
+  const mapInstance = useRef(null)
+  const circleMarker = useRef(null)
+
   const cities = [
     { name: 'Tacoma', featured: true },
     { name: 'Puyallup', featured: false },
@@ -15,6 +22,10 @@ const ServiceAreaMap = () => {
     { name: 'Edgewood', featured: false },
     { name: 'Fife', featured: false },
     { name: 'Federal Way', featured: false },
+    { name: 'Lacy', featured: false },
+    { name: 'Kent', featured: false },
+    { name: 'Renton', featured: false },
+    { name: 'Auburn', featured: false },
   ]
 
   const counties = [
@@ -22,6 +33,82 @@ const ServiceAreaMap = () => {
     'King County (Southern)',
     'Thurston County (Northern)',
   ]
+
+  // Tacoma center coordinates
+  const tacomaLat = 47.2529
+  const tacomaLng = -122.4443
+  const serviceRadius = 48.28 // kilometers (30 miles)
+
+  const initMap = () => {
+    if (!mapRef.current || mapInstance.current) return
+
+    // Tacoma center coordinates
+    const tacomaLat = 47.2529
+    const tacomaLng = -122.4443
+    const serviceRadiusKm = 48.28 // 30 miles in kilometers
+
+    // Initialize Leaflet map
+    const map = L.map(mapRef.current).setView([tacomaLat, tacomaLng], 10)
+    mapInstance.current = map
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map)
+
+    // Add circle marker pinned to Tacoma coordinates
+    const circleLayer = L.circle([tacomaLat, tacomaLng], {
+      radius: serviceRadiusKm * 1000, // Convert to meters for Leaflet
+      color: '#1b4d3e',
+      weight: 2,
+      opacity: 0.7,
+      fill: true,
+      fillColor: '#1b4d3e',
+      fillOpacity: 0.05,
+      dashArray: '5, 5',
+    }).addTo(map)
+
+    // Add center point marker
+    L.circleMarker([tacomaLat, tacomaLng], {
+      radius: 6,
+      color: '#f97316',
+      fill: true,
+      fillColor: '#f97316',
+      fillOpacity: 1,
+      weight: 2,
+    }).addTo(map)
+
+    // Add popup to center
+    L.popup()
+      .setLatLng([tacomaLat, tacomaLng])
+      .setContent('<strong>Tacoma Center</strong><br>Service Area Hub')
+      .addTo(map)
+
+    circleMarker.current = circleLayer
+  }
+
+  useEffect(() => {
+    if (isModalOpen && mapRef.current && !mapInstance.current) {
+      initMap()
+    }
+
+    // Handle body overflow
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset'
+      // Cleanup map instance when modal closes
+      if (!isModalOpen && mapInstance.current) {
+        mapInstance.current.remove()
+        mapInstance.current = null
+      }
+    }
+  }, [isModalOpen])
 
   return (
     <section className="py-20 bg-white" aria-labelledby="service-area-heading">
@@ -40,9 +127,9 @@ const ServiceAreaMap = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* Interactive Map */}
+          {/* Static Map */}
           <div className="relative">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-200">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-200 group">
               {/* Google Maps Embed */}
               <iframe
                 title="Green Collar Landscaping Service Area Map"
@@ -53,66 +140,63 @@ const ServiceAreaMap = () => {
                 allowFullScreen=""
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                className="w-full"
+                className="w-full pointer-events-none"
               ></iframe>
               
               {/* Radius Circle Overlay */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-                  {/* Outer radius circle - 30 miles */}
+                <svg className="w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+                  {/* Service Radius */}
                   <circle
                     cx="50"
                     cy="50"
                     r="35"
-                    fill="none"
+                    fill="rgba(27, 77, 62, 0.05)"
                     stroke="#1b4d3e"
-                    strokeWidth="0.5"
-                    strokeDasharray="2,2"
-                    opacity="0.6"
+                    strokeWidth="0.8"
+                    strokeDasharray="3,3"
+                    opacity="0.7"
                   />
-                  {/* Middle radius circle */}
                   <circle
                     cx="50"
                     cy="50"
                     r="25"
                     fill="none"
                     stroke="#1b4d3e"
-                    strokeWidth="0.4"
-                    strokeDasharray="2,2"
-                    opacity="0.4"
+                    strokeWidth="0.6"
+                    strokeDasharray="3,3"
+                    opacity="0.5"
                   />
-                  {/* Inner radius circle */}
                   <circle
                     cx="50"
                     cy="50"
                     r="15"
                     fill="none"
                     stroke="#1b4d3e"
-                    strokeWidth="0.3"
-                    strokeDasharray="2,2"
+                    strokeWidth="0.4"
+                    strokeDasharray="3,3"
                     opacity="0.3"
                   />
-                  {/* Center point - Tacoma */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="2"
-                    fill="#f97316"
-                    opacity="0.8"
-                  />
+                  {/* Center */}
                   <circle
                     cx="50"
                     cy="50"
                     r="2.5"
+                    fill="#f97316"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="3"
                     fill="none"
                     stroke="#f97316"
-                    strokeWidth="0.5"
+                    strokeWidth="0.6"
                     opacity="0.6"
                   >
                     <animate
                       attributeName="r"
-                      from="2.5"
-                      to="5"
+                      from="3"
+                      to="6"
                       dur="2s"
                       repeatCount="indefinite"
                     />
@@ -126,6 +210,16 @@ const ServiceAreaMap = () => {
                   </circle>
                 </svg>
               </div>
+
+              {/* Expand Button */}
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="absolute bottom-4 right-4 bg-forest-green hover:bg-emerald-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-10"
+                aria-label="Expand map to full screen"
+                title="Click to expand map"
+              >
+                <Maximize2 size={20} />
+              </button>
             </div>
             
             {/* Map Legend */}
@@ -152,13 +246,21 @@ const ServiceAreaMap = () => {
                       />
                     </svg>
                   </div>
-                  <span className="text-sm font-medium text-gray-700">Service Radius Zones</span>
+                  <span className="text-sm font-medium text-gray-700">30-Mile Service Radius</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-5 h-5 flex items-center justify-center">
                     <div className="w-full h-0.5 bg-gray-400"></div>
                   </div>
-                  <span className="text-sm text-gray-600">Up to 30 miles from Tacoma</span>
+                  <span className="text-sm text-gray-600">Shaded coverage area</span>
+                </div>
+                <div className="pt-2 border-t border-gray-300">
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="text-sm text-forest-green font-semibold hover:text-emerald-700 transition-colors"
+                  >
+                    → Click map icon to expand and explore
+                  </button>
                 </div>
               </div>
             </div>
@@ -215,8 +317,51 @@ const ServiceAreaMap = () => {
           </div>
         </div>
       </div>
+
+      {/* Full Screen Interactive Map Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="bg-forest-green text-white p-6 rounded-t-2xl flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-bold">Interactive Service Area Map</h3>
+                <p className="text-green-100 text-sm mt-1">Pan, zoom, and explore. The 30-mile radius circle stays fixed on Tacoma.</p>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="bg-white text-forest-green p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Close map"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Map Container */}
+            <div className="flex-1 relative overflow-hidden rounded-b-2xl">
+              <div
+                ref={mapRef}
+                className="w-full h-full"
+                style={{ position: 'relative' }}
+              ></div>
+
+              {/* Info Box */}
+              <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs pointer-events-auto z-10">
+                <h4 className="font-bold text-forest-green mb-2">Service Area</h4>
+                <p className="text-sm text-gray-700 mb-2">
+                  <strong>Radius:</strong> 30 miles
+                </p>
+                <p className="text-xs text-gray-600">
+                  The green circle shows our service coverage. Pan and zoom to explore areas we serve.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
 
 export default ServiceAreaMap
+

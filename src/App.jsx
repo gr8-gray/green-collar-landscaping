@@ -5,6 +5,7 @@ import Calculator from './components/Calculator'
 import ServicesGrid from './components/ServicesGrid'
 import ProjectGallery from './components/ProjectGallery'
 import AboutUs from './components/AboutUs'
+import CustomerReviews from './components/CustomerReviews'
 import SafetyBadge from './components/SafetyBadge'
 import ServiceAreaMap from './components/ServiceAreaMap'
 import Contact from './components/Contact'
@@ -23,6 +24,7 @@ function App() {
       <ServicesGrid />
       <ProjectGallery />
       <AboutUs />
+      <CustomerReviews />
       <SafetyBadge />
       <ServiceAreaMap />
       <Contact />
@@ -39,7 +41,7 @@ function App() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Company Info */}
             <div>
-              <h3 className="text-xl font-heading font-bold mb-4">Green Collar Landscaping LLC</h3>
+              <h3 className="text-xl font-heading font-bold mb-4">Green Collar<br className="md:hidden" /> Landscaping LLC</h3>
               <p className="text-gray-300 mb-4">Hardscaping Solutions Engineered for the Pacific Northwest</p>
 
               {/* Contact Info */}
