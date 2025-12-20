@@ -29,7 +29,7 @@ const Navbar = () => {
               fetchpriority="high"
             />
             <h1 className="text-xl md:text-2xl font-heading font-bold text-forest-green">
-              Green<br className="sm:hidden" /> Collar<br className="hidden sm:block" />Landscaping
+              Green<br className="sm:hidden" /> Collar<br className="hidden sm:block" /> Landscaping
             </h1>
           </div>
 

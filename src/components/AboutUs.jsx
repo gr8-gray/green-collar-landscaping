@@ -42,8 +42,8 @@ const AboutUs = () => {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
               <div className="text-center">
-                <div className="text-4xl font-heading font-bold text-forest-green mb-2">1</div>
-                <div className="text-sm text-gray-600 font-medium">Year Experience</div>
+                <div className="text-4xl font-heading font-bold text-forest-green mb-2">6</div>
+                <div className="text-sm text-gray-600 font-medium">Years Experience</div>
               </div>
               <div className="text-center">
                 <div className="text-4xl font-heading font-bold text-forest-green mb-2">60+</div>
