@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Star } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const CustomerReviews = () => {
+  const [showAll, setShowAll] = useState(false)
+
   const reviews = [
     {
       id: 1,
@@ -112,7 +114,7 @@ const CustomerReviews = () => {
               <div className="flex items-center justify-center gap-4">
                 <div>
                   <div className="text-4xl font-bold text-forest-green">5.0</div>
-                  <div className="text-sm text-gray-600">18 Reviews</div>
+                  <div className="text-sm text-gray-600">5 Reviews</div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-1">
@@ -139,7 +141,7 @@ const CustomerReviews = () => {
           viewport={{ once: true }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {reviews.map((review) => (
+          {(showAll ? reviews : reviews.slice(0, 5)).map((review) => (
             <motion.div
               key={review.id}
               variants={itemVariants}
@@ -175,6 +177,18 @@ const CustomerReviews = () => {
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Show More/Less toggle */}
+        {reviews.length > 5 && (
+          <div className="text-center mt-8">
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="inline-block bg-white border-2 border-forest-green text-forest-green hover:bg-forest-green hover:text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 mr-4"
+            >
+              {showAll ? 'Show Less' : `Show All ${reviews.length} Reviews`}
+            </button>
+          </div>
+        )}
 
         {/* Thumbtack Link */}
         <motion.div
