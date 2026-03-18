@@ -26,7 +26,6 @@ const CookieConsent = ({ onOpenPrivacy }) => {
     const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
     if (!GA_ID || GA_ID === 'GA_MEASUREMENT_ID') {
-      console.warn('Google Analytics ID not configured');
       return;
     }
 
