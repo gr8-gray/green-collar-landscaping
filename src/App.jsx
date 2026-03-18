@@ -35,6 +35,15 @@ function App() {
       {/* Cookie Consent Banner */}
       <CookieConsent onOpenPrivacy={() => setIsPrivacyOpen(true)} />
 
+      {/* Floating mobile call button */}
+      <a
+        href="tel:253-212-6752"
+        className="fixed bottom-6 right-6 z-40 md:hidden bg-safety-orange text-white rounded-full w-14 h-14 flex items-center justify-center shadow-2xl hover:bg-orange-600 transition-colors"
+        aria-label="Call Green Collar Landscaping"
+      >
+        <Phone className="h-6 w-6" />
+      </a>
+
       {/* Footer */}
       <footer className="bg-slate-grey text-white py-12" role="contentinfo" aria-label="Site footer">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
