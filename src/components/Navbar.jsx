@@ -227,17 +227,8 @@ const Navbar = () => {
                     >
                       Retaining Walls
                     </a>
-                    <a href="#turf" className="block text-slate-grey hover:text-forest-green transition-colors">
-                      Synthetic Turf
-                    </a>
-                    <a href="#lawn-care" className="block text-slate-grey hover:text-forest-green transition-colors">
-                      Lawn Care
-                    </a>
-                    <a href="#land-leveling" className="block text-slate-grey hover:text-forest-green transition-colors">
-                      Land Leveling
-                    </a>
-                    <a 
-                      href="#turf" 
+                    <a
+                      href="#turf"
                       className="block text-slate-grey hover:text-forest-green transition-colors focus:text-forest-green focus:outline-none focus:ring-2 focus:ring-forest-green focus:ring-inset rounded px-2 py-1"
                       role="menuitem"
                       tabIndex="0"
