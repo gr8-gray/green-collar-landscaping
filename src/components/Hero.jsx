@@ -68,7 +68,7 @@ const Hero = () => {
               <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-2xl border-4 border-white/20">
                 <video
                   src="/photos/Sora Video.mp4"
-                  className="w-full h-full object-contain bg-slate-900"
+                  className="w-full h-full object-cover"
                   width="600"
                   height="600"
                   autoPlay
