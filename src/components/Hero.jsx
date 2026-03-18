@@ -60,6 +60,30 @@ const Hero = () => {
             </div>
           </div>
 
+          {/* Mobile-only photo strip */}
+          <div className="grid grid-cols-2 gap-3 lg:hidden mt-2">
+            <div className="h-40 rounded-lg overflow-hidden shadow-xl border-2 border-white/30">
+              <img
+                src="/photos/paving 2.jpg"
+                alt="Paving project"
+                className="w-full h-full object-cover"
+                width="300"
+                height="200"
+                loading="lazy"
+              />
+            </div>
+            <div className="h-40 rounded-lg overflow-hidden shadow-xl border-2 border-white/30">
+              <img
+                src="/photos/retaining wall 2 completed.jpg"
+                alt="Retaining wall project"
+                className="w-full h-full object-cover"
+                width="300"
+                height="200"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
           {/* Right Content - Featured Project Photos */}
           <div className="hidden lg:block">
             {/* Option 3: Full-Width Video with Photos Below */}
