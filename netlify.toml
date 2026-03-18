@@ -1,0 +1,72 @@
+# Netlify Configuration for Green Collar Landscaping LLC
+# Deployment platform: https://www.netlify.com
+
+# Build settings
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Redirect all requests to index.html for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers for all pages
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Prevent clickjacking attacks
+    X-Frame-Options = "DENY"
+
+    # Prevent MIME type sniffing
+    X-Content-Type-Options = "nosniff"
+
+    # Enable XSS protection (legacy browsers)
+    X-XSS-Protection = "1; mode=block"
+
+    # Control referrer information
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Restrict browser features
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+    # Content Security Policy (allows Google Analytics, Google Maps, Fonts, Web3Forms)
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: https:;
+      connect-src 'self' https://api.web3forms.com https://www.google-analytics.com;
+      frame-src https://www.google.com;
+    """
+
+# Cache static assets for 1 year
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache photos for 1 month
+[[headers]]
+  for = "/photos/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+# Force HTTPS redirects (belt and suspenders - Netlify also has UI setting)
+[[redirects]]
+  from = "http://gcl-wa.com/*"
+  to = "https://gcl-wa.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.gcl-wa.com/*"
+  to = "https://www.gcl-wa.com/:splat"
+  status = 301
+  force = true
+
+# Environment variable hints (configure these in Netlify UI)
+# VITE_WEB3FORMS_KEY = your_web3forms_access_key
+# VITE_GA_MEASUREMENT_ID = G-XXXXXXXXXX
