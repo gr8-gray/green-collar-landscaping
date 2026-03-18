@@ -118,7 +118,7 @@ const PROJECTS = {
     {
       id: 'retaining-2',
       title: 'Multi-Level Retaining System',
-      before: ['/photos/retaing wall 2 before.jpeg', '/photos/retaining wall 2 angle 2.jpg'],
+      before: ['/photos/retaining wall 2 before.jpeg', '/photos/retaining wall 2 angle 2.jpg'],
       after: ['/photos/retaining wall 2 completed.jpg', '/photos/retaining wall 2 angle 3.jpg']
     },
     {
