@@ -1,0 +1,10 @@
+# robots.txt for Green Collar Landscaping LLC
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.gcl-wa.com/sitemap.xml
+
+# Crawl-delay (optional, adjust as needed)
+Crawl-delay: 1
