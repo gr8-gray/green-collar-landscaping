@@ -1,0 +1,43 @@
+# Weekly prod smoke of the customer path (STOP 19 rollout). Deploys are
+# Netlify-automatic with no build gate, so this workflow is the only automated
+# signal that the LIVE site still renders and captures leads. No secrets: the
+# specs hit the public site and never authenticate or submit anything.
+name: E2E customer path
+
+on:
+  workflow_dispatch: # manual re-run after a deploy or a red cron
+  schedule:
+    - cron: '0 14 * * 1' # Mondays 14:00 UTC ~ 6-7am Pacific, before business hours
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # --no-save: Playwright is a CI-only concern here; keeping it out of
+      # package.json avoids dragging test deps into the Netlify build.
+      - name: Install Playwright
+        run: |
+          npm install --no-save @playwright/test
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E suite against production
+        run: npx playwright test
+        env:
+          E2E_BASE_URL: https://gcl-wa.com
+
+      # Traces only exist when a retry happened — upload them so a red weekly
+      # run is debuggable without reproducing locally.
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 14
