@@ -31,3 +31,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright output — regenerated every run, never committed
+test-results/
+playwright-report/
