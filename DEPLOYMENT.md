@@ -1,5 +1,10 @@
 # SSL/HTTPS Setup & Deployment Guide
 
+> **The live deploy path is Netlify** (`netlify.toml`, auto-build from `main`) — it owns
+> gcl-wa.com and SSL. Everything below about other hosts is a pre-launch survey kept for
+> reference; do NOT create `vercel.json` or a second deploy config (drift risk — one was
+> deleted 2026-07-28 for exactly this reason).
+
 ---
 
 ## ✅ Pre-Deployment Checklist - COMPLETED
@@ -59,27 +64,6 @@
 6. **Force HTTPS redirect**
    - In Netlify: Site Settings → Domain Management
    - Enable "Force HTTPS"
-
----
-
-### Option 2: Using Vercel (FREE SSL)
-
-1. **Install Vercel CLI**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Deploy**
-   ```bash
-   vercel
-   ```
-
-3. **Add domain in Vercel dashboard**
-   - Go to project → Settings → Domains
-   - Add `gcl-wa.com`
-   - Follow DNS configuration instructions
-
-4. **SSL is automatic** - Vercel provisions certificates automatically
 
 ---
 
@@ -166,7 +150,6 @@
 
 3. **Configure environment variables** on hosting platform:
    - Netlify: Site Settings → Build & Deploy → Environment
-   - Vercel: Project Settings → Environment Variables
    - Other: Add to hosting control panel
 
 4. **Set up domain DNS** (see provider-specific instructions above)
@@ -203,32 +186,6 @@ Add these to your hosting configuration:
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.web3forms.com https://www.google-analytics.com; frame-src https://www.google.com;"
 ```
 
-### Vercel - Create `vercel.json`:
-```json
-{
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
-      ]
-    }
-  ]
-}
-```
-
----
 
 ## 📞 Support
 

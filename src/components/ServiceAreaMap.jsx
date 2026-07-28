@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { MapPin, CheckCircle, X, Maximize2 } from 'lucide-react'
+import { PHONE_DISPLAY, PHONE_TEL } from '../lib/contact'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -307,11 +308,11 @@ const ServiceAreaMap = () => {
                 Give us a call to confirm! We're always looking to expand our service areas for the right projects.
               </p>
               <a
-                href="tel:253-212-6752"
+                href={PHONE_TEL}
                 className="inline-flex items-center bg-safety-orange text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors"
               >
                 <MapPin className="h-4 w-4 mr-2" />
-                Call (253) 212-6752
+                Call {PHONE_DISPLAY}
               </a>
             </div>
           </div>

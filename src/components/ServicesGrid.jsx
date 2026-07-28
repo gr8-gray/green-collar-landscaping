@@ -1,7 +1,12 @@
+// The 8 service cards (#services) — the marketing-facing service lineup.
+// SERVICES is exported because the App.jsx footer renders the same list;
+// edit the array here and both places update. TRAP: Calculator.jsx keeps its
+// own PROJECT_TYPES (4 of these ids) because it couples names to pricing
+// math — if you rename a service here, check Calculator too.
 import { motion } from 'framer-motion'
 import { Square, Grid, Box, Leaf, Sprout, Layers, Palmtree, Pencil, ArrowRight } from 'lucide-react'
 
-const SERVICES = [
+export const SERVICES = [
   {
     id: 'paving',
     title: 'Paving & Patios',
