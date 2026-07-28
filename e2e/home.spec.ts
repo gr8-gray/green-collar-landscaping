@@ -38,9 +38,9 @@ test('core sections are present', async ({ page }) => {
 });
 
 test('phone links point at the real business number', async ({ page }) => {
-  // The number is duplicated across components with two tel: formats (see
-  // CLAUDE.md trap). Accept either format but pin the digits — a typo'd digit
-  // here silently sends customers to a stranger.
+  // All tel: hrefs now come from src/lib/contact.js (PHONE_TEL, E.164), but
+  // this assertion stays format-agnostic on purpose: pin the digits, not the
+  // formatting — a typo'd digit here silently sends customers to a stranger.
   const telLinks = page.locator('a[href^="tel:"]');
   expect(await telLinks.count()).toBeGreaterThan(0);
   for (const href of await telLinks.evaluateAll((as) =>

@@ -1,3 +1,6 @@
+// #gallery — before/after project pairs from public/photos/.
+// TRAP: photo filenames contain literal spaces; every src must stay
+// URL-encoded (%20) or images 404 in prod even though dev may tolerate them.
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'

@@ -1,5 +1,10 @@
+// Sticky top nav. Renders the phone CTA twice (desktop bar + mobile drawer) —
+// both pull from src/lib/contact.js so the number can never fork again.
+// TRAP: the services dropdown is hover-open on desktop but click-toggle on
+// mobile/keyboard; both paths share `servicesOpen`, so test both when touching it.
 import React, { useState } from 'react'
 import { Menu, X, ChevronDown, Phone } from 'lucide-react'
+import { PHONE_DISPLAY, PHONE_TEL } from '../lib/contact'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -37,11 +42,11 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-8">
             {/* Phone Number */}
             <a
-              href="tel:253-212-6752"
+              href={PHONE_TEL}
               className="flex items-center text-slate-grey hover:text-forest-green font-medium transition-colors"
             >
               <Phone className="h-4 w-4 mr-2" />
-              <span className="hidden lg:inline">(253) 212-6752</span>
+              <span className="hidden lg:inline">{PHONE_DISPLAY}</span>
             </a>
 
             <a href="#home" className="text-slate-grey hover:text-forest-green font-medium transition-colors">
@@ -179,11 +184,11 @@ const Navbar = () => {
             <div className="flex flex-col space-y-4">
               {/* Phone Number */}
               <a
-                href="tel:253-212-6752"
+                href={PHONE_TEL}
                 className="flex items-center text-slate-grey hover:text-forest-green font-medium transition-colors"
               >
                 <Phone className="h-4 w-4 mr-2" />
-                (253) 212-6752
+                {PHONE_DISPLAY}
               </a>
 
               <a href="#home" className="text-slate-grey hover:text-forest-green font-medium transition-colors">

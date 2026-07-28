@@ -4,7 +4,7 @@ Single-page React 18 + Vite + Tailwind marketing site for Green Collar Landscapi
 (Tacoma, WA hardscaping), live at https://gcl-wa.com. There is no router — `App.jsx`
 stacks every section component in page order and the navbar scroll-links to section
 `id`s. The one customer path that matters: a visitor lands, finds services, and either
-calls `tel:253-212-6752` or submits the contact form (posted to Web3Forms —
+calls (253) 212-6752 or submits the contact form (posted to Web3Forms —
 serverless, no backend in this repo).
 
 ## Map
@@ -12,7 +12,8 @@ serverless, no backend in this repo).
 | Path | What lives there |
 |---|---|
 | `index.html` | SEO/meta/OG tags, Google Fonts, LocalBusiness JSON-LD. Title and structured data live HERE, not in React. |
-| `src/App.jsx` | Section order, footer (phone + Instagram links), privacy-modal state. |
+| `src/lib/contact.js` | **Single source of truth for business identity**: phone (display + `tel:` href), Instagram, business hours. Every render site imports from here. |
+| `src/App.jsx` | Section order, footer (renders contact info from `src/lib/contact.js` and the services list from `ServicesGrid`'s exported `SERVICES`), privacy-modal state. |
 | `src/components/Hero.jsx` | `#home` — h1 "Hardscaping Solutions Engineered for the Pacific Northwest", CTA buttons. |
 | `src/components/Calculator.jsx` | `#calculator` — quote estimator; pricing constants are hardcoded here. |
 | `src/components/ServicesGrid.jsx` | `#services` — the 8 service cards. |
@@ -21,8 +22,7 @@ serverless, no backend in this repo).
 | `src/components/CookieConsent.jsx` | First-visit banner gated on `localStorage.cookieConsent`; accepting loads GA. |
 | `src/components/ServiceAreaMap.jsx`, `AboutUs.jsx`, `CustomerReviews.jsx`, `SafetyBadge.jsx`, `PrivacyPolicy.jsx`, `Navbar.jsx` | Remaining sections `#reviews`, `#process`, the map, and chrome. |
 | `public/photos/` | Raw project photos — filenames contain spaces; always URL-encode when referencing. |
-| `netlify.toml` | **Authoritative deploy config**: build, SPA redirect, security headers/CSP, gcl-wa.com HTTPS redirects. |
-| `vercel.json` | Mirror config from an earlier platform evaluation — NOT the live deploy. Keep in sync or delete deliberately. |
+| `netlify.toml` | **The only deploy config**: build, SPA redirect, security headers/CSP, gcl-wa.com HTTPS redirects. A `vercel.json` from an earlier platform evaluation was deleted deliberately — a second deploy config is drift risk; do not reintroduce one. |
 | `e2e/` + `playwright.config.ts` | Prod-safe Playwright specs against the live site (see policy below). |
 | `.github/workflows/e2e.yml` | Weekly + manual E2E run in CI. |
 
@@ -30,10 +30,15 @@ serverless, no backend in this repo).
 
 - **Feature colocation**: each section is one self-contained component — content,
   markup, and animation together. Add sections as new components wired into `App.jsx`.
-- **Single-source duplicated values**: the phone number `253-212-6752` currently
-  appears in 5+ files with two different `tel:` formats (`tel:253-212-6752` vs
-  `tel:+12532126752`). Known trap — if it ever changes, grep the whole repo; better,
-  hoist it to a shared constant first.
+- **Single-source duplicated values**: phone, Instagram, and business hours live in
+  `src/lib/contact.js`; all `tel:` links in `src/` render from its `PHONE_TEL`
+  (E.164). Never hardcode the number in a component. Intentional duplicates that
+  CANNOT import JS and must be updated by hand if the number changes:
+  `index.html` (LocalBusiness JSON-LD `telephone`) and `README.md`.
+- **Known remaining duplication (deliberate)**: `Calculator.jsx` keeps its own
+  `PROJECT_TYPES` (4 service ids/names/colors overlapping `ServicesGrid`'s
+  `SERVICES`) because it couples names to pricing math — merging them would tie
+  marketing copy to quote calculations. If you rename a service, check both.
 - **Comments narrate why, not what** — traps, rationale, and platform quirks; the JSX
   already says what.
 - **Secrets**: `VITE_WEB3FORMS_KEY` and `VITE_GA_MEASUREMENT_ID` come from the deploy

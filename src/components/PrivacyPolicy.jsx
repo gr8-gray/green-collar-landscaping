@@ -1,5 +1,11 @@
+// Privacy policy modal (opened from footer / cookie banner, not a route).
+// Legal-ish prose: dates, retention periods, and vendor names in here were
+// written for the cookie/GA/Web3Forms setup as-is — if analytics or the form
+// backend changes, this copy must change with it or the policy lies.
+// Contact identity (phone/Instagram) comes from src/lib/contact.js.
 import React from 'react';
 import { Shield, Lock, Eye, FileText, Mail, Cookie, X } from 'lucide-react';
+import { PHONE_DISPLAY, PHONE_TEL, INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../lib/contact';
 
 const PrivacyPolicy = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -306,8 +312,8 @@ const PrivacyPolicy = ({ isOpen, onClose }) => {
             </ul>
             <p className="text-gray-700">
               To exercise any of these rights, please contact us at{' '}
-              <a href="tel:+12532126752" className="text-forest-green hover:underline">
-                (253) 212-6752
+              <a href={PHONE_TEL} className="text-forest-green hover:underline">
+                {PHONE_DISPLAY}
               </a>{' '}
               or via our contact form.
             </p>
@@ -386,19 +392,19 @@ const PrivacyPolicy = ({ isOpen, onClose }) => {
               <p>Tacoma, Washington</p>
               <p className="mt-2">
                 Phone:{' '}
-                <a href="tel:+12532126752" className="text-forest-green hover:underline font-semibold">
-                  (253) 212-6752
+                <a href={PHONE_TEL} className="text-forest-green hover:underline font-semibold">
+                  {PHONE_DISPLAY}
                 </a>
               </p>
               <p className="mt-1">
                 Instagram:{' '}
                 <a
-                  href="https://www.instagram.com/greencollarlandscaping_"
+                  href={INSTAGRAM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-forest-green hover:underline"
                 >
-                  @greencollarlandscaping_
+                  {INSTAGRAM_HANDLE}
                 </a>
               </p>
             </div>

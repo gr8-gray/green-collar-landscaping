@@ -1,3 +1,7 @@
+// About section — company story and value props. Pure static marketing copy
+// edited directly in the JSX; nothing here is data-driven on purpose, so
+// don't hoist these strings to config. NOTE: this section has no anchor id —
+// it is not a navbar scroll target (aria-labelledby is for a11y, not routing).
 import { motion } from 'framer-motion'
 import { Target, Hammer, Award } from 'lucide-react'
 
