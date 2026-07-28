@@ -1,6 +1,14 @@
+// THE lead form (#contact) — the highest-value component in the repo.
+// Posts to Web3Forms (serverless; access key from VITE_WEB3FORMS_KEY env).
+// Spam defenses that must survive any refactor: `botcheck` honeypot field
+// (bots fill it, humans never see it) and a 60s localStorage submit throttle.
+// TRAP: the E2E suite (e2e/contact.spec.ts) blocks api.web3forms.com at the
+// network layer and exercises only client-side validation — keep validation
+// client-side-visible or the suite loses coverage.
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Phone, MapPin, Send, Instagram } from 'lucide-react'
+import { PHONE_DISPLAY, PHONE_TEL, INSTAGRAM_HANDLE, INSTAGRAM_URL, BUSINESS_HOURS } from '../lib/contact'
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -205,10 +213,10 @@ const Contact = () => {
                   <div>
                     <h4 className="font-semibold mb-1">Call or Text</h4>
                     <a
-                      href="tel:253-212-6752"
+                      href={PHONE_TEL}
                       className="text-gray-200 hover:text-white transition-colors"
                     >
-                      (253) 212-6752
+                      {PHONE_DISPLAY}
                     </a>
                   </div>
                 </div>
@@ -237,12 +245,12 @@ const Contact = () => {
                   <div>
                     <h4 className="font-semibold mb-1">Follow Us</h4>
                     <a
-                      href="https://www.instagram.com/greencollarlandscaping_?igsh=emtmZmg4OXdjcnJx"
+                      href={INSTAGRAM_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-200 hover:text-white transition-colors"
                     >
-                      @greencollarlandscaping_
+                      {INSTAGRAM_HANDLE}
                     </a>
                   </div>
                 </div>
@@ -252,18 +260,12 @@ const Contact = () => {
               <div className="mt-8 pt-8 border-t border-white/20">
                 <h4 className="font-semibold mb-3">Business Hours</h4>
                 <div className="space-y-2 text-gray-200">
-                  <div className="flex justify-between">
-                    <span>Monday - Friday:</span>
-                    <span className="font-medium">7:00 AM - 6:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Saturday:</span>
-                    <span className="font-medium">8:00 AM - 4:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sunday:</span>
-                    <span className="font-medium">Closed</span>
-                  </div>
+                  {BUSINESS_HOURS.map(({ days, hours }) => (
+                    <div key={days} className="flex justify-between">
+                      <span>{days}:</span>
+                      <span className="font-medium">{hours}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -479,7 +481,7 @@ const Contact = () => {
                     role="alert"
                     aria-live="assertive"
                   >
-                    ✗ Something went wrong. Please call us at (253) 212-6752 instead.
+                    ✗ Something went wrong. Please call us at {PHONE_DISPLAY} instead.
                   </div>
                 )}
               </form>

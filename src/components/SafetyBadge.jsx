@@ -1,3 +1,6 @@
+// Trust strip — certification/insurance badges. These are compliance claims,
+// not decoration: only list credentials the business actually holds, and
+// keep them consistent with the footer's Trust Indicators in App.jsx.
 import React from 'react'
 import { Shield, Award, FileCheck, HardHat, CheckCircle } from 'lucide-react'
 

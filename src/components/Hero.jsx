@@ -1,3 +1,6 @@
+// #home hero — owns the page's only h1, which the E2E suite and SEO both
+// key on ("Hardscaping Solutions Engineered for the Pacific Northwest").
+// Change that copy and e2e/home.spec.ts + index.html meta must move in lockstep.
 import React from 'react'
 import { ArrowRight, Shield, Award, MapPin } from 'lucide-react'
 

@@ -1,3 +1,6 @@
+// #reviews — hand-copied testimonials plus a link out to the Thumbtack
+// profile. TRAP: reviews are static text, not fetched; when a new review
+// lands on Thumbtack it must be pasted in here manually or the site goes stale.
 import React from 'react'
 import { Star } from 'lucide-react'
 import { motion } from 'framer-motion'

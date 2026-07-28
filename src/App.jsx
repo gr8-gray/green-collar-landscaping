@@ -1,8 +1,12 @@
+// App is the whole "router": there are no routes — sections stack in page
+// order and the navbar scroll-links to their ids. The footer below is a
+// contact-info render site; all business identity values (phone, Instagram,
+// hours) come from src/lib/contact.js — never hardcode them here.
 import React, { useState } from 'react'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import Calculator from './components/Calculator'
-import ServicesGrid from './components/ServicesGrid'
+import ServicesGrid, { SERVICES } from './components/ServicesGrid'
 import ProjectGallery from './components/ProjectGallery'
 import AboutUs from './components/AboutUs'
 import CustomerReviews from './components/CustomerReviews'
@@ -12,6 +16,7 @@ import Contact from './components/Contact'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import CookieConsent from './components/CookieConsent'
 import { Phone, Instagram } from 'lucide-react'
+import { PHONE_DISPLAY, PHONE_TEL, INSTAGRAM_HANDLE, INSTAGRAM_URL, BUSINESS_HOURS } from './lib/contact'
 
 function App() {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
@@ -47,20 +52,20 @@ function App() {
               {/* Contact Info */}
               <div className="space-y-3">
                 <a
-                  href="tel:253-212-6752"
+                  href={PHONE_TEL}
                   className="flex items-center text-gray-300 hover:text-white transition-colors"
                 >
                   <Phone className="h-4 w-4 mr-2" />
-                  (253) 212-6752
+                  {PHONE_DISPLAY}
                 </a>
                 <a
-                  href="https://www.instagram.com/greencollarlandscaping_?igsh=emtmZmg4OXdjcnJx"
+                  href={INSTAGRAM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center text-gray-300 hover:text-white transition-colors"
                 >
                   <Instagram className="h-4 w-4 mr-2" />
-                  @greencollarlandscaping_
+                  {INSTAGRAM_HANDLE}
                 </a>
               </div>
             </div>
@@ -68,15 +73,12 @@ function App() {
             {/* Services */}
             <div>
               <h4 className="text-lg font-heading font-semibold mb-4">Services</h4>
+              {/* Mirrors the ServicesGrid cards — sourced from the same array
+                  so the footer can't drift from the actual service lineup. */}
               <ul className="space-y-2 text-gray-300">
-                <li>Paving & Patios</li>
-                <li>Fencing Solutions</li>
-                <li>Retaining Walls</li>
-                <li>Synthetic Turf</li>
-                <li>Lawn Care</li>
-                <li>Land Leveling</li>
-                <li>Sod Replacement</li>
-                <li>Outdoor Design</li>
+                {SERVICES.map((service) => (
+                  <li key={service.id}>{service.title}</li>
+                ))}
               </ul>
             </div>
 
@@ -94,18 +96,12 @@ function App() {
             <div>
               <h4 className="text-lg font-heading font-semibold mb-4">Business Hours</h4>
               <div className="space-y-2 text-gray-300">
-                <div className="flex flex-col">
-                  <span className="font-medium">Monday - Friday:</span>
-                  <span>7:00 AM - 6:00 PM</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-medium">Saturday:</span>
-                  <span>8:00 AM - 4:00 PM</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-medium">Sunday:</span>
-                  <span>Closed</span>
-                </div>
+                {BUSINESS_HOURS.map(({ days, hours }) => (
+                  <div key={days} className="flex flex-col">
+                    <span className="font-medium">{days}:</span>
+                    <span>{hours}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
