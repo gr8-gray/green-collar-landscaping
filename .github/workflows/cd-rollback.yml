@@ -39,6 +39,12 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # Expose the SMOKE step's outcome so rollback triggers ONLY on a real test
+    # RED — never on an infra failure (poll API blip, npm/browser install). If
+    # the suite never ran (published=false / upstream step failed), this is
+    # 'skipped', and rollback does not fire.
+    outputs:
+      smoke: ${{ steps.smoke.outcome }}
     steps:
       - uses: actions/checkout@v4
 
@@ -54,10 +60,13 @@ jobs:
           deadline=$(( $(date +%s) + 900 ))   # 15 minutes
           published=false
           while :; do
+            # Tolerate transient API errors: a failed curl / unparseable body maps
+            # to state=none and simply re-polls within the deadline — it must NEVER
+            # fail this step (which would read as a rollback trigger downstream).
             resp=$(curl -fsS -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
-              "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/deploys?per_page=20")
+              "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/deploys?per_page=20" || true)
             state=$(echo "$resp" | jq -r --arg c "$COMMIT" \
-              'map(select(.context=="production" and .commit_ref==$c)) | .[0].state // "none"')
+              'map(select(.context=="production" and .commit_ref==$c)) | .[0].state // "none"' 2>/dev/null || echo "none")
             echo "  netlify state for ${COMMIT:0:8}: ${state}"
             if [ "$state" = "ready" ]; then published=true; break; fi
             if [ "$state" = "error" ]; then
@@ -86,6 +95,7 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: Run customer-path suite against production
+        id: smoke
         if: steps.wait.outputs.published == 'true'
         run: npx playwright test
         env:
@@ -107,7 +117,7 @@ jobs:
     if: >-
       always() &&
       (
-        needs.verify.result == 'failure'
+        needs.verify.outputs.smoke == 'failure'
         ||
         (github.event_name == 'workflow_dispatch' && github.event.inputs.rollback_drill == 'true')
       )
@@ -125,14 +135,25 @@ jobs:
         run: |
           set -euo pipefail
           resp=$(curl -fsS -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
-            "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/deploys?per_page=30")
+            "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/deploys?per_page=50")
           ready=$(echo "$resp" | jq -c 'map(select(.context=="production" and .state=="ready"))')
           count=$(echo "$ready" | jq 'length')
           echo "Found ${count} ready production deploy(s)."
           if [ "$DRILL" = "true" ]; then
             idx=0; MODE="DRILL (restore CURRENT live deploy — proves mechanism, no revert)"
           else
-            idx=1; MODE="ROLLBACK (post-deploy suite RED — restoring previous good deploy)"
+            # Anchor to THIS run's commit rather than assuming index 0 is the bad
+            # deploy: find github.sha in the ready list and restore the deploy
+            # immediately AFTER it (the previous good). Robust if a newer deploy
+            # landed during the run (positional idx=1 could otherwise hit the bad one).
+            bad_idx=$(echo "$ready" | jq -r --arg c "${GITHUB_SHA}" 'map(.commit_ref) | index($c) // -1')
+            if [ "$bad_idx" -lt 0 ]; then
+              echo "::warning::commit ${GITHUB_SHA:0:8} not found in ready production deploys — falling back to newest-minus-one."
+              idx=1
+            else
+              idx=$(( bad_idx + 1 ))
+            fi
+            MODE="ROLLBACK (post-deploy suite RED — restoring the deploy prior to ${GITHUB_SHA:0:8})"
           fi
           target=$(echo "$ready" | jq -r --argjson i "$idx" '.[$i].id // empty')
           target_sha=$(echo "$ready" | jq -r --argjson i "$idx" '.[$i].commit_ref // "unknown"')
