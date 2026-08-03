@@ -1,0 +1,212 @@
+name: CD post-deploy rollback (Netlify)
+
+# L1 auto-rollback for the Netlify topology. GCL deploys on push OUTSIDE Actions
+# (Netlify's own git integration), and the existing e2e.yml only runs weekly —
+# so nothing gates an individual deploy. This workflow closes that gap:
+#   1. waits for Netlify to publish THIS commit (poll deploys API until ready),
+#   2. runs the EXISTING customer-path suite (e2e/*.ts) against gcl-wa.com,
+#   3. on RED, restores the previous good deploy via the Netlify restore API,
+#   4. re-checks health + notifies (best-effort) + records evidence (STOP 9).
+# A green deploy does nothing extra. Rollback fires ONLY on a confirmed-new-deploy
+# smoke RED — a build error or publish timeout leaves prod on the previous good
+# build untouched and is surfaced for a manual look (no false rollback).
+#
+# Reuses the same invocation as e2e.yml: Playwright is installed --no-save (never
+# added to package.json, to keep it out of the Netlify build) and the specs hit
+# the public site with E2E_BASE_URL — no secrets beyond the Netlify API creds.
+
+on:
+  push:
+    branches: [main]
+  # Rollback drill (STOP 9 evidence): dispatch with rollback_drill=true to exercise
+  # the restore machinery end-to-end WITHOUT reverting — it restores the CURRENT
+  # live deploy (a no-op republish), proving auth + list + restore + notify work
+  # before we ever have to trust the path on a real red deploy.
+  workflow_dispatch:
+    inputs:
+      rollback_drill:
+        description: 'Exercise the rollback path against the CURRENT live deploy (proves the mechanism; does NOT revert). Leave false for a normal run.'
+        type: boolean
+        default: false
+
+concurrency:
+  group: cd-rollback-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ── post-deploy live verification ────────────────────────────────────────────
+  verify:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Netlify to publish this commit
+        id: wait
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          echo "Waiting for Netlify production deploy of ${COMMIT} to reach state=ready…"
+          deadline=$(( $(date +%s) + 900 ))   # 15 minutes
+          published=false
+          while :; do
+            resp=$(curl -fsS -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+              "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/deploys?per_page=20")
+            state=$(echo "$resp" | jq -r --arg c "$COMMIT" \
+              'map(select(.context=="production" and .commit_ref==$c)) | .[0].state // "none"')
+            echo "  netlify state for ${COMMIT:0:8}: ${state}"
+            if [ "$state" = "ready" ]; then published=true; break; fi
+            if [ "$state" = "error" ]; then
+              echo "::warning::Netlify build ERRORED for ${COMMIT} — production stays on the previous good build. Nothing to verify or roll back."
+              break
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::warning::Timed out (15m) waiting for Netlify to publish ${COMMIT}. Not treating as a rollback trigger — check the deploy manually."
+              break
+            fi
+            sleep 20
+          done
+          echo "published=${published}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        if: steps.wait.outputs.published == 'true'
+        with:
+          node-version: 20
+
+      # Same invocation as e2e.yml: --no-save keeps Playwright out of package.json
+      # and the Netlify build. The specs hit the live URL, so no app deps needed.
+      - name: Install Playwright
+        if: steps.wait.outputs.published == 'true'
+        run: |
+          npm install --no-save @playwright/test
+          npx playwright install --with-deps chromium
+
+      - name: Run customer-path suite against production
+        if: steps.wait.outputs.published == 'true'
+        run: npx playwright test
+        env:
+          E2E_BASE_URL: https://gcl-wa.com
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-verify
+          path: test-results/
+          retention-days: 14
+
+  # ── auto-rollback (Netlify restore) ──────────────────────────────────────────
+  # Fires when the post-deploy suite went RED (verify job failed), or as a drill.
+  # Uses Netlify's restore API — republishes a prior successful build, no rebuild.
+  rollback:
+    needs: [verify]
+    if: >-
+      always() &&
+      (
+        needs.verify.result == 'failure'
+        ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.rollback_drill == 'true')
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore previous good Netlify deploy
+        id: restore
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          DRILL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.rollback_drill == 'true' }}
+        run: |
+          set -euo pipefail
+          resp=$(curl -fsS -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+            "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/deploys?per_page=30")
+          ready=$(echo "$resp" | jq -c 'map(select(.context=="production" and .state=="ready"))')
+          count=$(echo "$ready" | jq 'length')
+          echo "Found ${count} ready production deploy(s)."
+          if [ "$DRILL" = "true" ]; then
+            idx=0; MODE="DRILL (restore CURRENT live deploy — proves mechanism, no revert)"
+          else
+            idx=1; MODE="ROLLBACK (post-deploy suite RED — restoring previous good deploy)"
+          fi
+          target=$(echo "$ready" | jq -r --argjson i "$idx" '.[$i].id // empty')
+          target_sha=$(echo "$ready" | jq -r --argjson i "$idx" '.[$i].commit_ref // "unknown"')
+          if [ -z "$target" ]; then
+            echo "::error::No production deploy at index ${idx} to restore — refusing. Manual intervention needed."
+            exit 1
+          fi
+          echo "Restoring deploy ${target} (${target_sha:0:8}) — ${MODE}"
+          restore=$(curl -fsS -X POST -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+            "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/deploys/${target}/restore")
+          rstate=$(echo "$restore" | jq -r '.state // "unknown"')
+          {
+            echo "id=${target}"
+            echo "sha=${target_sha}"
+            echo "mode=${MODE}"
+            echo "restore_state=${rstate}"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save @playwright/test
+          npx playwright install --with-deps chromium
+
+      - name: Wait for restored deploy to serve
+        run: sleep 20
+
+      - name: Verify site healthy after restore
+        id: postcheck
+        continue-on-error: true
+        run: npx playwright test
+        env:
+          E2E_BASE_URL: https://gcl-wa.com
+
+      - name: Record evidence (STOP 9)
+        if: always()
+        run: |
+          {
+            echo "## L1 rollback — ${{ steps.restore.outputs.mode }}"
+            echo ""
+            echo "- Restored deploy id: \`${{ steps.restore.outputs.id }}\`"
+            echo "- Restored commit: \`${{ steps.restore.outputs.sha }}\`"
+            echo "- Netlify restore state: \`${{ steps.restore.outputs.restore_state }}\`"
+            echo "- Post-restore suite: ${{ steps.postcheck.outcome }}"
+            echo "- Triggering run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify (best-effort — posts only if the secrets exist)
+        if: always()
+        env:
+          NTFY_URL: ${{ secrets.NTFY_URL }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MODE: ${{ steps.restore.outputs.mode }}
+          SHA: ${{ steps.restore.outputs.sha }}
+          POSTCHECK: ${{ steps.postcheck.outcome }}
+        run: |
+          MSG="GCL CD ${MODE}: restored ${SHA:0:8}, post-check=${POSTCHECK}. ${RUN_URL}"
+          if [ -n "${NTFY_URL}" ] && [ -n "${NTFY_TOPIC}" ]; then
+            curl -fsS -H "Title: green-collar CD rollback" -d "${MSG}" "${NTFY_URL}/${NTFY_TOPIC}" || true
+          fi
+          if [ -n "${TELEGRAM_BOT_TOKEN}" ] && [ -n "${TELEGRAM_CHAT_ID}" ]; then
+            curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "text=${MSG}" || true
+          fi
+
+      - name: Fail the job if the post-restore suite is still red
+        if: steps.postcheck.outcome == 'failure'
+        run: |
+          echo "::error::Post-restore suite STILL RED — the restored deploy is also unhealthy. Manual intervention required (the job does not loop)."
+          exit 1
