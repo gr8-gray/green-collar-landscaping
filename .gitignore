@@ -21,6 +21,12 @@ dist-ssr
 # AI Tool configurations
 .claude
 
+# Playwright (E2E)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
